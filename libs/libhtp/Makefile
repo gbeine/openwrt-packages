@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libhtp
-PKG_VERSION:=0.5.34
+PKG_VERSION:=0.5.35
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://github.com/OISF/$(PKG_NAME)/archive/
-PKG_HASH:=088674560082d403b1b677d6ff57caf8dab9f1f27a7539136ee604e40aa3022d
+PKG_HASH:=4c3ac4c6027710455ffe725f24ac6a83b2c13fe0afc83b74df2cca78ba46976a
 
 PKG_MAINTAINER:=Gerrit Beine <gb@simonwunderlich.de>
 PKG_LICENSE:=BSD-3-Clause
