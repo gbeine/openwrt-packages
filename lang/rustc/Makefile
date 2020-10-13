@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=rustc
-PKG_VERSION:=1.46.0
+PKG_VERSION:=1.47.0
 
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-src.tar.gz
 PKG_SOURCE_URL:=https://static.rust-lang.org/dist/
-PKG_HASH:=2d6a3b7196db474ba3f37b8f5d50a1ecedff00738d7846840605b42bfc922728
+PKG_HASH:=3185df064c4747f2c8b9bb8c4468edd58ff4ad6d07880c879ac1b173b768d81d
 
 PKG_MAINTAINER:=Gerrit Beine <gb@simonwunderlich.de>
 PKG_LICENSE:=Apache-2.0
@@ -38,20 +38,29 @@ define Package/rustc/description
 	software.
 endef
 
-HOST_CONFIGURE_ARGS:=$(filter-out \
-	--target=% \
-	--host=% \
-	--build=% \
-	--program-prefix=% \
-	--program-suffix=% \
-	--exec-prefix=% \
-	--sbindir=% \
-	--libexecdir=% \
-	--disable-nls \
-	, $(HOST_CONFIGURE_ARGS))
+HOST_CONFIGURE_ARGS += \
+	--enable-extended \
+	--tools=cargo
+
+HOST_CONFIGURE_ARGS:=\
+	$(filter-out \
+		--target=% \
+		--host=% \
+		--build=% \
+		--program-prefix=% \
+		--program-suffix=% \
+		--exec-prefix=% \
+		--sbindir=% \
+		--libexecdir=% \
+		--disable-nls \
+		, $(HOST_CONFIGURE_ARGS))
 
 define Host/Compile
-	+$(MAKE) $(PKG_JOBS) -C $(HOST_BUILD_DIR)
+	(cd $(HOST_BUILD_DIR) && \
+		$(STAGING_DIR_HOSTPKG)/bin/python3 src/bootstrap/bootstrap.py build --stage 2 \
+	)
+#	+$(MAKE) $(PKG_JOBS) -C $(HOST_BUILD_DIR) \
+#		all
 endef
 
 define Host/Install
