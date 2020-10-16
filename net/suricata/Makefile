@@ -36,6 +36,7 @@ CONFIGURE_ARGS+= \
 	--enable-non-bundled-htp \
 	--with-libnet-includes=$(STAGING_DIR)/usr/include \
 	--disable-suricata-update \
+	--disable-rust \
 	--host=$(ARCH)
 
 define Package/suricata/Default
@@ -47,13 +48,19 @@ endef
 
 define Package/suricata
   $(call Package/suricata/Default)
-  DEPENDS:=+libpcap +libpcre +libmagic +zlib +libyaml +jansson +libnfnetlink +libnetfilter-log +libnetfilter-queue +libnet-1.2.x +libhtp +file
+  DEPENDS:=+libpcap +libpcre +libmagic +zlib +libyaml +jansson +libnfnetlink +libnetfilter-log +libnetfilter-queue +libnet-1.2.x +libhtp +file +liblzma
 endef
 
 define Package/suricata-scripts
   $(call Package/suricata/Default)
   TITLE:=Suricata-IDS Python scripts
-  DEPENDS:=+suricata +python
+  DEPENDS:=+suricata +python +python-simplejson
+endef
+
+define Package/suricata-update
+  $(call Package/suricata/Default)
+  TITLE:=Suricata-IDS rules update tool
+  DEPENDS:=+suricata +suricata-scripts +python +python-yaml
 endef
 
 define Package/suricata/Default/description
@@ -70,33 +77,57 @@ define Package/suricata-scripts/description
   This package contains python scripts for suricata.
 endef
 
+define Package/suricata-update/description
+  $(call Package/suricata/Default/description)
+  This package contains the tool for keeping rules up to date.
+endef
+
+define Build/Compile
+	$(call Build/Compile/PyMod,suricata-update,\
+		install --prefix=/usr --root="$(PKG_INSTALL_DIR)" \
+	)
+	$(call Build/Compile/Default)
+endef
+
 define Package/suricata/install 
-	$(INSTALL_DIR) $(1)/etc/suricata/rules
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/suricata.init $(1)/etc/init.d/suricata
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_CONF) ./files/suricata.config $(1)/etc/config/suricata
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/suricata $(1)/usr/bin
-	$(CP) \
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/suricata $(1)/usr/bin
+	$(INSTALL_DIR) $(1)/etc/suricata/rules
+	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/suricata.yaml \
 		$(PKG_BUILD_DIR)/classification.config \
 		$(PKG_BUILD_DIR)/reference.config \
 		$(PKG_BUILD_DIR)/threshold.config \
 		$(1)/etc/suricata
-	$(CP) $(PKG_BUILD_DIR)/rules/*.rules $(1)/etc/suricata/rules
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rules/*.rules $(1)/etc/suricata/rules
 endef
 
 define Package/suricata-scripts/install 
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_DIR) $(1)$(PYTHON_PKG_DIR)/{suricata,suricatasc}
-	$(CP) $(PKG_INSTALL_DIR)/usr/bin/{suricatactl,suricatasc} $(1)/usr/bin
-	$(CP) $(PKG_INSTALL_DIR)$(PYTHON_PKG_DIR)/suricata/* \
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/suricatactl $(1)/usr/bin
+	$(INSTALL_DIR) $(1)$(PYTHON_PKG_DIR)/suricata
+	$(CP) $(PKG_INSTALL_DIR)$(PYTHON_PKG_DIR)/suricata/{config,ctl} \
 		$(1)$(PYTHON_PKG_DIR)/suricata
-	$(CP) $(PKG_INSTALL_DIR)$(PYTHON_PKG_DIR)/suricatasc/* \
-		$(1)$(PYTHON_PKG_DIR)/suricatasc
-	$(CP) $(PKG_INSTALL_DIR)$(PYTHON_PKG_DIR)/suricata*egg-info \
+	$(CP) $(PKG_INSTALL_DIR)$(PYTHON_PKG_DIR)/suricata/__init__.py \
+		$(1)$(PYTHON_PKG_DIR)/suricata
+	$(CP) $(PKG_INSTALL_DIR)$(PYTHON_PKG_DIR)/suricata-$(PKG_VERSION)*egg-info \
 		$(1)$(PYTHON_PKG_DIR)
-	# fix python path in scripts
-	$(SED) 's/#!.*/#!\/usr\/bin\/python/g' \
-		$(1)/usr/bin/{suricatactl,suricatasc}
+endef
+
+define Package/suricata-update/install
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/suricata-update $(1)/usr/bin
+	$(INSTALL_DIR) $(1)$(PYTHON_PKG_DIR)/suricata/update
+	$(CP) $(PKG_INSTALL_DIR)$(PYTHON_PKG_DIR)/suricata/update/* \
+		$(1)$(PYTHON_PKG_DIR)/suricata/update
+	$(CP) $(PKG_INSTALL_DIR)$(PYTHON_PKG_DIR)/suricata_update*egg-info \
+		$(1)$(PYTHON_PKG_DIR)
 endef
 
 $(eval $(call BuildPackage,suricata))
 $(eval $(call BuildPackage,suricata-scripts))
+$(eval $(call BuildPackage,suricata-update))
