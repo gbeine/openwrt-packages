@@ -13,3 +13,6 @@ config SURICATA_DEFAULT_LIBNET
 config SURICATA_DEFAULT_TCMALLOC
 	bool
 	default n
+config SURICATA_DEFAULT_HYPERSCAN
+	bool
+	default n

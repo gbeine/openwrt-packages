@@ -40,7 +40,6 @@ CONFIGURE_ARGS+= \
 	--disable-rust \
 	--host=$(ARCH)
 
-#ifneq ($(CONFIGSURICATA_NETFILTER_LOG),$(SURICATA_DEFAULT_NETFILTER_LOG))
 ifdef CONFIG_SURICATA_NETFILTER_LOG
 CONFIGURE_ARGS+=--enable-nflog
 else
@@ -53,6 +52,9 @@ CONFIGURE_ARGS+=--disable-nfqueue
 endif
 ifdef CONFIG_SURICATA_LIBNET
 CONFIGURE_ARGS+=--with-libnet-includes=$(STAGING_DIR)/usr/include
+endif
+ifdef CONFIG_SURICATA_HYPERSCAN
+CONFIGURE_ARGS+=--with-libhs-includes=$(STAGING_DIR)/usr/include/hs
 endif
 
 define Package/suricata/Default
@@ -70,6 +72,7 @@ define Package/suricata
 	+SURICATA_NETFILTER_LOG:libnetfilter-log \
 	+SURICATA_NETFILTER_QUEUE:libnetfilter-queue \
 	+SURICATA_LIBNET:libnet-1.2.x \
+	+SURICATA_HYPERSCAN:hyperscan \
 	+SURICATA_TCMALLOC:tcmalloc-minimal
 endef
 
@@ -82,7 +85,7 @@ endef
 define Package/suricata-update
   $(call Package/suricata/Default)
   TITLE:=Suricata-IDS rules update tool
-  DEPENDS:=@PACKAGE_suricata +suricata-scripts +python +python-yaml
+  DEPENDS:=@PACKAGE_suricata-scripts +python +python-yaml
 endef
 
 define Package/suricata/Default/description
@@ -103,10 +106,6 @@ define Package/suricata-update/description
   $(call Package/suricata/Default/description)
   This package contains the tool for keeping rules up to date.
 endef
-
-#define Build/Configure
-#	echo $(CONFIGURE_ARGS)
-#endef
 
 define Build/Compile
 	$(call Build/Compile/PyMod,suricata-update,\
