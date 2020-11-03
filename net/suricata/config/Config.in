@@ -1,0 +1,31 @@
+config SURICATA_NETFILTER
+	bool "Build with netfilter"
+	default SURICATA_DEFAULT_NETFILTER
+	help
+	Enable support for netfilter
+
+if SURICATA_NETFILTER
+config SURICATA_NETFILTER_LOG
+	bool "Build with netfilter-log"
+	default SURICATA_DEFAULT_NETFILTER_LOG
+	help
+	Enable support for netfilter-log
+
+config SURICATA_NETFILTER_QUEUE
+	bool "Build with netfilter-queue"
+	default SURICATA_DEFAULT_NETFILTER_QUEUE
+	help
+	Enable support for netfilter-queue
+endif
+
+config SURICATA_LIBNET
+	bool "Build with libnet"
+	default SURICATA_DEFAULT_LIBNET
+	help
+	Enable support for libnet
+
+config SURICATA_TCMALLOC
+	bool "Build with tcmalloc"
+	default SURICATA_DEFAULT_TCMALLOC
+	help
+	Enable support for tcmalloc

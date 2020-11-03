@@ -1,0 +1,17 @@
+if PACKAGE_suricata
+
+config SURICATA_CUSTOM
+	bool "Customize Suricata options"
+	default n
+        help
+          Enabling this allows full customization of Suricata settings.
+
+          Unless you know what you are doing, you should leave this as 'n'
+
+	source "config/Config-defaults.in"
+
+	if SURICATA_CUSTOM
+	source "config/Config.in"
+	endif
+
+endif

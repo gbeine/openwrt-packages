@@ -1,0 +1,15 @@
+config SURICATA_DEFAULT_NETFILTER
+	bool
+	default n
+config SURICATA_DEFAULT_NETFILTER_LOG
+	bool
+	default n
+config SURICATA_DEFAULT_NETFILTER_QUEUE
+	bool
+	default n
+config SURICATA_DEFAULT_LIBNET
+	bool
+	default n
+config SURICATA_DEFAULT_TCMALLOC
+	bool
+	default n

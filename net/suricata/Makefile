@@ -25,19 +25,35 @@ PKG_FIXUP:=autoreconf
 include $(INCLUDE_DIR)/package.mk
 include ../../../packages/lang/python/python-package.mk
 
+define Package/suricata/config
+	source "$(SOURCE)/Config.in"
+endef
+
 CONFIGURE_ARGS+= \
 	--prefix=/usr \
 	--sysconfdir=/etc \
 	--localstatedir=/var \
-	--enable-nflog \
-	--enable-nfqueue \
 	--enable-gccprotect \
 	--enable-pie \
 	--enable-non-bundled-htp \
-	--with-libnet-includes=$(STAGING_DIR)/usr/include \
 	--disable-suricata-update \
 	--disable-rust \
 	--host=$(ARCH)
+
+#ifneq ($(CONFIGSURICATA_NETFILTER_LOG),$(SURICATA_DEFAULT_NETFILTER_LOG))
+ifdef CONFIG_SURICATA_NETFILTER_LOG
+CONFIGURE_ARGS+=--enable-nflog
+else
+CONFIGURE_ARGS+=--disable-nflog
+endif
+ifdef CONFIG_SURICATA_NETFILTER_QUEUE
+CONFIGURE_ARGS+=--enable-nfqueue
+else
+CONFIGURE_ARGS+=--disable-nfqueue
+endif
+ifdef CONFIG_SURICATA_LIBNET
+CONFIGURE_ARGS+=--with-libnet-includes=$(STAGING_DIR)/usr/include
+endif
 
 define Package/suricata/Default
   SECTION:=net
@@ -48,19 +64,25 @@ endef
 
 define Package/suricata
   $(call Package/suricata/Default)
-  DEPENDS:=+libpcap +libpcre +libmagic +zlib +libyaml +jansson +libnfnetlink +libnetfilter-log +libnetfilter-queue +libnet-1.2.x +libhtp +file +liblzma
+  DEPENDS:=+libpcap +libpcre +libmagic +file +zlib +libyaml +jansson +libhtp \
+	+liblzma \
+	+SURICATA_NETFILTER:libnfnetlink \
+	+SURICATA_NETFILTER_LOG:libnetfilter-log \
+	+SURICATA_NETFILTER_QUEUE:libnetfilter-queue \
+	+SURICATA_LIBNET:libnet-1.2.x \
+	+SURICATA_TCMALLOC:tcmalloc-minimal
 endef
 
 define Package/suricata-scripts
   $(call Package/suricata/Default)
   TITLE:=Suricata-IDS Python scripts
-  DEPENDS:=+suricata +python +python-simplejson
+  DEPENDS:=@PACKAGE_suricata +python +python-simplejson
 endef
 
 define Package/suricata-update
   $(call Package/suricata/Default)
   TITLE:=Suricata-IDS rules update tool
-  DEPENDS:=+suricata +suricata-scripts +python +python-yaml
+  DEPENDS:=@PACKAGE_suricata +suricata-scripts +python +python-yaml
 endef
 
 define Package/suricata/Default/description
@@ -82,6 +104,10 @@ define Package/suricata-update/description
   This package contains the tool for keeping rules up to date.
 endef
 
+#define Build/Configure
+#	echo $(CONFIGURE_ARGS)
+#endef
+
 define Build/Compile
 	$(call Build/Compile/PyMod,suricata-update,\
 		install --prefix=/usr --root="$(PKG_INSTALL_DIR)" \
@@ -89,7 +115,7 @@ define Build/Compile
 	$(call Build/Compile/Default)
 endef
 
-define Package/suricata/install 
+define Package/suricata/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/suricata.init $(1)/etc/init.d/suricata
 	$(INSTALL_DIR) $(1)/etc/config
@@ -106,7 +132,7 @@ define Package/suricata/install
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rules/*.rules $(1)/etc/suricata/rules
 endef
 
-define Package/suricata-scripts/install 
+define Package/suricata-scripts/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/suricatactl $(1)/usr/bin
 	$(INSTALL_DIR) $(1)$(PYTHON_PKG_DIR)/suricata
