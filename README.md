@@ -21,6 +21,7 @@ Run
 * devel/ragel - The [Ragel State Machine Compiler](http://www.colm.net/open-source/ragel/)
 * lang/python/python-future - A Python package required for building MAVLink Router [D, H]
 * lang/rustc - The [Rust](https://www.rust-lang.org) compiler, required to build Suricata 5.x [D, H]
+* libs/hyperscan - The [Hyperscan](https://www.hyperscan.io) regex matching library, an optional dependency for Suricata on x86_64 [D]
 * libs/libhtp - The current version of the [libHTP](https://github.com/OISF/libhtp) HTTP protocol parser for Suricata
 * net/curl-hosts - A package of curl for the host build target, required to build Rust [D, H]
 * net/mavlink-router - The current version of [MAVLink Router](https://github.com/mavlink/mavlink-router)
