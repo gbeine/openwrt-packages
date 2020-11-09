@@ -24,7 +24,7 @@ PKG_LICENSE_FILES:=LICENSE
 PKG_INSTALL:=1
 PKG_FIXUP:=autoreconf
 
-PKG_BUILD_DEPENDS=python3/host python3-future/host
+PKG_BUILD_DEPENDS=python3/host python-future/host
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -33,7 +33,7 @@ define Package/mavlink-router
   CATEGORY:=Network
   TITLE:=Route mavlink packets between endpoints
   URL:=https://github.com/intel/mavlink-router
-  DEPENDS:=+libstdcpp @USE_GLIBC
+  DEPENDS:=+libstdcpp
 endef
 
 define Package/mavlink-router/description
@@ -44,10 +44,10 @@ CONFIGURE_ARGS+= \
 	--disable-systemd
 
 define Package/mavlink-router/install
-#	$(INSTALL_DIR) $(1)/etc/init.d
-#	$(INSTALL_BIN) ./files/mavlink-router.init $(1)/etc/init.d/mavlink-router
-#	$(INSTALL_DIR) $(1)/etc/config
-#	$(INSTALL_CONF) ./files/mavlink-router.config $(1)/etc/config/mavlink-router
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/mavlink-router.init $(1)/etc/init.d/mavlink-router
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_CONF) ./files/mavlink-router.config $(1)/etc/config/mavlink-router
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/mavlink-routerd $(1)/usr/bin
 endef

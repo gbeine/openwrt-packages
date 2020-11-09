@@ -1,0 +1,20 @@
+diff -Nur mavlink-router-2.orig/src/mavlink-router/logendpoint.cpp mavlink-router-2/src/mavlink-router/logendpoint.cpp
+--- mavlink-router-2.orig/src/mavlink-router/logendpoint.cpp	2020-03-26 17:00:26.000000000 +0100
++++ mavlink-router-2/src/mavlink-router/logendpoint.cpp	2020-11-04 14:50:31.984447934 +0100
+@@ -55,11 +55,11 @@
+     _add_sys_comp_id(LOG_ENDPOINT_SYSTEM_ID << 8);
+     _fsync_cb.aio_fildes = -1;
+ 
+-    aioinit aio_init_data {};
+-    aio_init_data.aio_threads = 1;
+-    aio_init_data.aio_num = 1;
+-    aio_init_data.aio_idle_time = 3; // make sure to keep the thread running
+-    aio_init(&aio_init_data);
++//    aioinit aio_init_data {};
++//    aio_init_data.aio_threads = 1;
++//    aio_init_data.aio_num = 1;
++//    aio_init_data.aio_idle_time = 3; // make sure to keep the thread running
++//    aio_init(&aio_init_data);
+ }
+ 
+ void LogEndpoint::_send_msg(const mavlink_message_t *msg, int target_sysid)

@@ -1,0 +1,143 @@
+#!/bin/sh /etc/rc.common
+
+USE_PROCD=1
+
+START=42
+STOP=15
+
+CONFIGURATION="mavlink-router"
+CONF_SECTION_MASTER=""
+
+MAVLINK_CMD=/usr/bin/mavlink-routerd
+MAVLINK_CONF_DIR=/etc/mavlink-router
+MAVLINK_CONF_FILE=/etc/mavlink-router/main.conf
+MAVLINK_OPTIONS=""
+
+add_uart_endpoint() {
+	local name device baud flow
+
+	config_get name $1 name
+	config_get device $1 device
+	config_get baud $1 baud
+	config_get flow $1 flow
+
+	echo "[UartEndpoint ${name}]" >> ${MAVLINK_CONF_FILE}
+	echo "Device=${device}" >> ${MAVLINK_CONF_FILE}
+	echo "Baud=${baud}" >> ${MAVLINK_CONF_FILE}
+	echo "FlowControl=${flow}" >> ${MAVLINK_CONF_FILE}
+	echo "" >> ${MAVLINK_CONF_FILE}
+
+}
+
+add_udp_endpoint() {
+	local name address port mode
+
+	config_get name $1 name
+	config_get address $1 address
+	config_get port $1 port
+	config_get mode $1 mode
+
+	echo "[UdpEndpoint ${name}]" >> ${MAVLINK_CONF_FILE}
+	echo "Address=${address}" >> ${MAVLINK_CONF_FILE}
+	echo "Port=${port}" >> ${MAVLINK_CONF_FILE}
+	echo "Mode=${mode}" >> ${MAVLINK_CONF_FILE}
+	echo "" >> ${MAVLINK_CONF_FILE}
+}
+
+add_tcp_endpoint() {
+	local name address port retry
+
+	config_get name $1 name
+	config_get address $1 address
+	config_get port $1 port
+	config_get retry $1 retry
+
+	echo "[TcpEndpoint ${name}]" >> ${MAVLINK_CONF_FILE}
+	echo "Address=${address}" >> ${MAVLINK_CONF_FILE}
+	echo "Port=${port}" >> ${MAVLINK_CONF_FILE}
+	echo "RetryTimeout=${retry}" >> ${MAVLINK_CONF_FILE}
+	echo "" >> ${MAVLINK_CONF_FILE}
+}
+
+add_general() {
+	local port stats dialect log_dir log_mode log_level
+
+	config_get port $1 port
+	config_get stats $1 stats
+	config_get dialect $1 dialect
+	config_get log_dir $1 log_dir
+	config_get log_mode $1 log_mode
+	config_get log_level $1 log_level
+
+	echo "[General]" >> ${MAVLINK_CONF_FILE}
+	echo "TcpServerPort=${port}" >> ${MAVLINK_CONF_FILE}
+	echo "ReportStats=${stats}" >> ${MAVLINK_CONF_FILE}
+	echo "MavlinkDialect=${dialect}" >> ${MAVLINK_CONF_FILE}
+	echo "Log=${log_dir}" >> ${MAVLINK_CONF_FILE}
+	echo "LogMode=${log_mode}" >> ${MAVLINK_CONF_FILE}
+	echo "DebugLogLevel=${log_level}" >> ${MAVLINK_CONF_FILE}
+	echo "" >> ${MAVLINK_CONF_FILE}
+}
+
+create_config() {
+	mkdir -p ${MAVLINK_CONF_DIR} || true
+	echo "# auto generated -- DO NOT EDIT" > ${MAVLINK_CONF_FILE}
+	echo "" >> ${MAVLINK_CONF_FILE}
+}
+
+create_log_dir() {
+	local name="${CONF_SECTION_MASTER}"
+	local log_dir
+
+	config_get log_dir $name log_dir
+
+	mkdir -p ${log_dir} || true
+}
+
+create_options() {
+	local name="${CONF_SECTION_MASTER}"
+	local master device baud address port
+
+	config_get master $name master
+	case $master in
+		"uart")
+			config_get device $name device
+			config_get baud $name baud
+			MAVLINK_OPTIONS="${device}:${baud}"
+			;;
+		"udp")
+			config_get address $name address
+			config_get port $name port
+			MAVLINK_OPTIONS="${address}:${port}"
+			;;
+	esac
+}
+
+config_cb() {
+	local type="$1"
+	local name="$2"
+
+	case $type in
+		"general")
+			CONF_SECTION_MASTER=$name
+			;;
+	esac
+}
+
+start_service() {
+	config_load "${CONFIGURATION}"
+
+	create_options
+	create_log_dir
+	create_config
+	config_foreach add_general general
+	config_foreach add_uart_endpoint uartendpoint
+	config_foreach add_udp_endpoint udpendpoint
+	config_foreach add_tcp_endpoint tcpendpoint
+
+	procd_open_instance
+	procd_set_param command ${MAVLINK_CMD} ${MAVLINK_OPTIONS}
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_close_instance
+}
