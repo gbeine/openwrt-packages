@@ -72,7 +72,7 @@ define Package/suricata
 	+SURICATA_NETFILTER_LOG:libnetfilter-log \
 	+SURICATA_NETFILTER_QUEUE:libnetfilter-queue \
 	+SURICATA_LIBNET:libnet-1.2.x \
-	+SURICATA_HYPERSCAN:hyperscan \
+	+(TARGET_x86_64&&SURICATA_HYPERSCAN):hyperscan \
 	+SURICATA_TCMALLOC:tcmalloc-minimal
 endef
 
