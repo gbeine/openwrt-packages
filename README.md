@@ -6,13 +6,13 @@ Additional packages for OpenWRT that are not part of the official feeds.
 Edit your `feeds.conf` and add this line at the end
 
 ```
-src-git gbeine-packages https://github.com/gbeine/openwrt-packages.git
+src-git gbeinepackages https://github.com/gbeine/openwrt-packages.git
 ```
 
 Run
 
 ```
-./scripts/feeds update gbeine-packages
+./scripts/feeds update gbeinepackages
 ./scripts/feeds install -a
 ```
 
